@@ -36,7 +36,7 @@ def read_token():
     return open(tokenfile).read()
 
 def is_audio(ext):
-    return ext in ['.mp3', '.aac', '.wav', '.wma', '.ogg', '.m3u']
+    return ext in ['.mp3', '.aac', '.wav', '.wma', '.ogg', '.m3u', '.flac']
 
 def cli():
     args = parse_args()
@@ -58,7 +58,7 @@ def cli():
         # add files to masterlist
         files.extend(_files)
 
-    print(f"\nFound a total of {len(files)} audio files")
+    print(f"\nFound {len(files)} audio file(s)")
 
     for fp in files:
         # extract title from path
