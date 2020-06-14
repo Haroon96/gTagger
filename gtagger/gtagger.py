@@ -38,7 +38,7 @@ class gTagger:
     def get_genius_data(self, query, genius_url):
 
         # get top google result is no genius_url provided
-        urls = gsearch(f'site:genius.com {query}', stop=5) if genius_url is None else [genius_url]
+        urls = gsearch(f'site:genius.com {query} lyrics', stop=5) if genius_url is None else [genius_url]
 
         for url in urls:
             self.log("\tTrying URL", url)

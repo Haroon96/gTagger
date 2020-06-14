@@ -66,7 +66,7 @@ def cli():
         # extract filename as query
         query, _ = os.path.splitext(title)
 
-        # check if user provided a custom query
+        # check if user provided a query fix
         if args.query is not None: 
             query = f'{args.query} {query}'
 
