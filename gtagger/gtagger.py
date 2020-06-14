@@ -87,7 +87,7 @@ class gTagger:
         js['lyrics'] = lyrics
 
         if js['album'] is not None:
-            js['track_number'] = self.get_track_number(js['album']['url'], js['url'])
+            js['track_number'] = self.__get_track_number(js['album']['url'], js['url'])
         else:
             js['track_number'] = None
 
@@ -125,7 +125,7 @@ class gTagger:
     def __embed_metatags(self, query, filename, genius_url):
 
         # search for song metadata
-        music_info = self.get_song_metadata(query, genius_url)
+        music_info = self.__get_song_metadata(query, genius_url)
 
         # embed relevant tags using mutagen
         audio_file = File(filename)
