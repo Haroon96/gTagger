@@ -6,7 +6,7 @@ from .gtagger import gTagger
 def parse_args():
     parser = ArgumentParser(description='Tag metadata into song files')
     parser.add_argument('sources', type=str, nargs='+', help='source file or folder')
-    parser.add_argument('-q', '--query', type=str, help='Query suffix (if filename alone isn\'t enough to infer song title)')
+    parser.add_argument('-q', '--query', type=str, help='Query suffix (if filename alone isn\'t sufficient for inferring song title)')
     parser.add_argument('-g', '--genius-url', type=str, help='Genius.com URL to use for tagging (use if program fails to find it itself)')
     return parser.parse_args()
 
