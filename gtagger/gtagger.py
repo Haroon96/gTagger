@@ -6,7 +6,7 @@ import requests
 import unicodedata
 from bs4 import BeautifulSoup
 from googlesearch import search as gsearch
-from mutagen.mp3 import MP3
+from mutagen import File
 from mutagen.id3 import TIT2, TPE1, TALB, TPE2, USLT, APIC, TCON, TRCK
 from pathvalidate import sanitize_filename
 
@@ -27,7 +27,7 @@ class gTagger:
 
         # if key is None, there was an issue in the call - try again
         if key is None:
-            raise 'No Song ID in this URL!'
+            raise Exception('No Song ID in this URL!')
 
         # extract song_id
         key = key.group()
@@ -43,24 +43,26 @@ class gTagger:
 
         for url in urls:
             self.log("\tTrying URL", url)
+
             try:
                 song_id, html = self.fetch_page(url)
-            except:
-                continue
-            
-            # get lyrics
-            lyrics = ''
-            genre = ''
-            try:
+                
+                # try to get lyrics and genre
                 soup = BeautifulSoup(html, 'html.parser')
-                lyrics = soup.find('div', attrs={'class': 'lyrics'}).text.strip()
-                genre = json.loads(soup.find('meta', attrs={"itemprop":"page_data"})['content'])['dmp_data_layer']['page']['genres'][0]
+
+                lyrics = None
+                genre = None
+                try:
+                    lyrics = soup.find('div', attrs={'class': 'lyrics'}).text.strip()
+                    genre = json.loads(soup.find('meta', attrs={"itemprop":"page_data"})['content'])['dmp_data_layer']['page']['genres'][0]
+                except Exception as e:
+                    self.log("\tFailed to fetch lyrics", e)
+
+                # return song_id, and lyrics and genre if found
                 return (song_id, lyrics, genre)
             except Exception as e:
-                self.log("\tFailed to fetch lyrics", e)
-                
-        return (song_id, lyrics, genre)
-
+                self.log(e)
+            
     def get_track_number(self, album_url, song_url):
         r = requests.get(album_url)
         soup = BeautifulSoup(r.text, 'html.parser')
@@ -125,32 +127,32 @@ class gTagger:
         music_info = self.get_song_metadata(query, genius_url)
 
         # embed relevant tags using mutagen
-        mp3 = MP3(filename)
+        audio_file = File(filename)
 
         # embed title and artist info
         title = self.get_title(music_info)
         artist = music_info['primary_artist']['name']
-        mp3['TIT2'] = TIT2(encoding=3, text=[title])
-        mp3['TPE1'] = TPE1(encoding=3, text=[artist])
+        audio_file['TIT2'] = TIT2(encoding=3, text=[title])
+        audio_file['TPE1'] = TPE1(encoding=3, text=[artist])
 
         # embed album info
         album_name, album_artist = self.get_album_info(music_info)
-        mp3['TALB'] = TALB(encoding=3, text=[album_name])
-        mp3['TPE2'] = TPE2(encoding=3, text=[album_artist])
+        audio_file['TALB'] = TALB(encoding=3, text=[album_name])
+        audio_file['TPE2'] = TPE2(encoding=3, text=[album_artist])
         
         # embed other tags
-        mp3['TCON'] = TCON(encoding=3, text=[music_info['genre']])
-        mp3['USLT::XXX'] = USLT(encoding=1, lang='XXX', desc='', text=music_info['lyrics'])
-        mp3['TRCK'] = TRCK(encoding=3, text=[music_info['track_number']])
+        audio_file['TCON'] = TCON(encoding=3, text=[music_info['genre']])
+        audio_file['USLT::XXX'] = USLT(encoding=1, lang='XXX', desc='', text=music_info['lyrics'])
+        audio_file['TRCK'] = TRCK(encoding=3, text=[music_info['track_number']])
 
         try:
             artwork = requests.get(self.get_cover_art_url(music_info), stream=True)
-            mp3['APIC:'] = APIC(encoding=3, mime="image/jpeg", type=3, desc='', data=artwork.raw.read())
+            audio_file['APIC:'] = APIC(encoding=3, mime="image/jpeg", type=3, desc='', data=artwork.raw.read())
         except Exception as e:
             self.log(f"\tFailed to embed artwork for title: {title}", e)
 
         # save the new file
-        mp3.save()
+        audio_file.save()
 
         # return new title and filename
         return f'{artist} - {title}', self.rename_file(title, artist, filename)
