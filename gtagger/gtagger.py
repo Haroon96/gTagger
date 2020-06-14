@@ -159,6 +159,6 @@ class gTagger:
 
     def tag(self, query, filename, genius_url=None):
         try:
-            self.__embed_metatags(query, filename, genius_url)
+            return self.__embed_metatags(query, filename, genius_url)
         except Exception as e:
             self.log(e)
