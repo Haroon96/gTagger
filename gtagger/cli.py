@@ -42,7 +42,10 @@ def cli():
     args = parse_args()
     token = read_token()
 
-    gt = gTagger(token)
+    # create a gTagger instance and set logger to print
+    gt = gTagger(token, log=print)
+
+    # list of audio files
     files = []
 
     for src in args.sources:

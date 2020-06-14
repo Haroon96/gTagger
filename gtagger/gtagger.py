@@ -12,31 +12,28 @@ from pathvalidate import sanitize_filename
 
 class gTagger:
 
-    def __init__(self, token):
+    def __init__(self, token, log=lambda x : None):
         self.token = token
+        self.log = log
 
     # fetches a genius page and extracts song_id
     def fetch_page(self, url):
-        for _ in range(10):
-            # fetch page
-            r = requests.get(url)
-            html = r.text
-            
-            # get song_id
-            key = re.search(r'"Song ID":[0-9]+', html)
+        # fetch page
+        r = requests.get(url)
+        html = r.text
+        
+        # get song_id
+        key = re.search(r'"Song ID":[0-9]+', html)
 
-            # if key is None, there was an issue in the call - try again
-            if key is None:
-                continue
+        # if key is None, there was an issue in the call - try again
+        if key is None:
+            continue
 
-            # extract song_id
-            key = key.group()
-            song_id = re.search(r'[0-9]+', key).group()
+        # extract song_id
+        key = key.group()
+        song_id = re.search(r'[0-9]+', key).group()
 
-            return song_id, html
-            
-        # unable to fetch the webpage despite multiple retries
-        raise Exception('Unable to fetch webpage')
+        return song_id, html
 
     # gets in
     def get_genius_data(self, title, genius_url):
@@ -45,7 +42,7 @@ class gTagger:
         urls = gsearch(f'site:genius.com {title}', stop=5) if genius_url is None else [genius_url]
 
         for url in urls:
-            print("\tTrying URL", url)
+            self.log("\tTrying URL", url)
             try:
                 song_id, html = self.fetch_page(url)
             except:
@@ -60,7 +57,7 @@ class gTagger:
                 genre = json.loads(soup.find('meta', attrs={"itemprop":"page_data"})['content'])['dmp_data_layer']['page']['genres'][0]
                 return (song_id, lyrics, genre)
             except Exception as e:
-                print("\tFailed to fetch lyrics", e)
+                self.log("\tFailed to fetch lyrics", e)
                 
         return (song_id, lyrics, genre)
 
@@ -119,7 +116,7 @@ class gTagger:
         # remove extra whitespaces
         newname = re.sub(r'\s+', ' ', newname)
         newfilepath = os.path.join(basepath, newname)
-        print("\tRenaming file to", newfilepath)
+        self.log("\tRenaming file to", newfilepath)
         os.rename(oldfilepath, newfilepath)
         return newfilepath
 
@@ -151,7 +148,7 @@ class gTagger:
             artwork = requests.get(self.get_cover_art_url(music_info), stream=True)
             mp3['APIC:'] = APIC(encoding=3, mime="image/jpeg", type=3, desc='', data=artwork.raw.read())
         except Exception as e:
-            print(f"\tFailed to embed artwork for title: {title}", e)
+            self.log(f"\tFailed to embed artwork for title: {title}", e)
 
         # save the new file
         mp3.save()
