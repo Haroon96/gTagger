@@ -158,7 +158,10 @@ class gTagger:
         return f'{artist} - {title}', self.__rename_file(title, artist, filename)
 
     def tag(self, query, filename, genius_url=None):
+
         try:
             return self.__embed_metatags(query, filename, genius_url)
         except Exception as e:
             self.log(e)
+
+        return query, filename
