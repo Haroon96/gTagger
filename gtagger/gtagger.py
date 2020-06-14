@@ -27,7 +27,7 @@ class gTagger:
 
         # if key is None, there was an issue in the call - try again
         if key is None:
-            continue
+            raise 'No Song ID in this URL!'
 
         # extract song_id
         key = key.group()
