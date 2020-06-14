@@ -19,19 +19,19 @@ class gTagger:
     # fetches a genius page and extracts song_id
     def fetch_page(self, url):
         # fetch page
-        r = requests.get(url)
+        r = requests.get(url, headers={'User-Agent':'haroon96/gTagger'})
         html = r.text
-        
+        open('test.html','w').write(html)
+
         # get song_id
-        key = re.search(r'"Song ID":[0-9]+', html)
+        key = re.search(r'(?i)"song ?id.?":([0-9]+)', html)
 
         # if key is None, there was an issue in the call - try again
         if key is None:
             raise Exception('No Song ID in this URL!')
 
         # extract song_id
-        key = key.group()
-        song_id = re.search(r'[0-9]+', key).group()
+        song_id = key.group(1)
 
         return song_id, html
 
@@ -46,22 +46,32 @@ class gTagger:
 
             try:
                 song_id, html = self.fetch_page(url)
+
+                # replace all <br> with new-lines
+                html = re.sub(r'<br/?>', '\n', html)
                 
                 # try to get lyrics and genre
                 soup = BeautifulSoup(html, 'html.parser')
 
                 lyrics = None
                 genre = None
-                try:
-                    lyrics = soup.find('div', attrs={'class': 'lyrics'}).text.strip()
-                    genre = json.loads(soup.find('meta', attrs={"itemprop":"page_data"})['content'])['dmp_data_layer']['page']['genres'][0]
-                except Exception as e:
-                    self.log("\tFailed to fetch lyrics", e)
 
-                # return song_id, and lyrics and genre if found
+                try:
+                    l = re.compile(r'(?i)^lyrics')
+                    lyrics = soup.find('div', attrs={'class': l}).text.strip()
+                except:
+                    self.log("\tFailed to fetch lyrics!")
+
+                try:
+                    genre = json.loads(soup.find('meta', attrs={"itemprop":"page_data"})['content'])['dmp_data_layer']['page']['genres'][0]
+                except:
+                    self.log("\tFailed to fetch genre")
+
                 return (song_id, lyrics, genre)
             except Exception as e:
-                self.log(e)
+                self.log(f'\t{e}')
+                
+        raise '\tFailed to find the song on Genius.com!'
             
     def get_track_number(self, album_url, song_url):
         r = requests.get(album_url)

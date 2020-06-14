@@ -73,7 +73,7 @@ def cli():
         try:
             print(f'\nTagging {title}...')
             title, newfile = gt.embed_song_metadata(query, fp, args.genius_url)
-            print("\tRenaming file to {newfile}...")
+            print(f"\tRenaming file to {newfile}...")
             print("\tDone!")
         except Exception as e:
             print(f"Failed to tag! {e}")
