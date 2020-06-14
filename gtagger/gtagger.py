@@ -36,10 +36,10 @@ class gTagger:
         return song_id, html
 
     # gets in
-    def get_genius_data(self, title, genius_url):
+    def get_genius_data(self, query, genius_url):
 
         # get top google result is no genius_url provided
-        urls = gsearch(f'site:genius.com {title}', stop=5) if genius_url is None else [genius_url]
+        urls = gsearch(f'site:genius.com {query}', stop=5) if genius_url is None else [genius_url]
 
         for url in urls:
             self.log("\tTrying URL", url)
@@ -116,14 +116,13 @@ class gTagger:
         # remove extra whitespaces
         newname = re.sub(r'\s+', ' ', newname)
         newfilepath = os.path.join(basepath, newname)
-        self.log("\tRenaming file to", newfilepath)
         os.rename(oldfilepath, newfilepath)
         return newfilepath
 
-    def embed_song_metadata(self, title, filename, genius_url=None):
+    def embed_song_metadata(self, query, filename, genius_url=None):
 
         # search for song metadata
-        music_info = self.get_song_metadata(title, genius_url)
+        music_info = self.get_song_metadata(query, genius_url)
 
         # embed relevant tags using mutagen
         mp3 = MP3(filename)
