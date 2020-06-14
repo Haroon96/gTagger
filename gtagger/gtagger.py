@@ -17,7 +17,7 @@ class gTagger:
         self.log = log
 
     # fetches a genius page and extracts song_id
-    def fetch_page(self, url):
+    def __fetch_page(self, url):
         # fetch page
         r = requests.get(url, headers={'User-Agent':'haroon96/gTagger'})
         html = r.text
@@ -35,7 +35,7 @@ class gTagger:
         return song_id, html
 
     # gets in
-    def get_genius_data(self, query, genius_url):
+    def __get_genius_data(self, query, genius_url):
 
         # get top google result is no genius_url provided
         urls = gsearch(f'site:genius.com {query} lyrics', stop=5) if genius_url is None else [genius_url]
@@ -63,16 +63,16 @@ class gTagger:
             except Exception as e:
                 self.log(f'\t{e}')
 
-        raise '\tFailed to find the song on Genius.com!'
+        raise Exception('\tFailed to find the song on Genius.com!')
             
-    def get_track_number(self, album_url, song_url):
+    def __get_track_number(self, album_url, song_url):
         r = requests.get(album_url)
         soup = BeautifulSoup(r.text, 'html.parser')
         tracks = soup.find_all('div', attrs={'class': 'chart_row'})
         track_number = [i for i in tracks if song_url in str(i)][0]
         return int(track_number.text.split()[0])
 
-    def get_song_metadata(self, q, genius_url):
+    def __get_song_metadata(self, q, genius_url):
         headers = {'Authorization': f'Bearer {self.token}'}
         
         # search for song on genius.com
@@ -94,24 +94,24 @@ class gTagger:
         return js
 
     # return album art url or song url if single
-    def get_cover_art_url(self, music_info):
+    def __get_cover_art_url(self, music_info):
         if music_info['album'] is not None:
             return music_info['album']['cover_art_url']
         return music_info['song_art_image_url']
 
     # return album name or suffix 'Single' if the song is a single
-    def get_album_info(self, music_info):
+    def __get_album_info(self, music_info):
         if music_info['album'] is not None:
             return (music_info['album']['name'], music_info['album']['artist']['name'])
         return (f"{music_info['title']} - Single", music_info['primary_artist']['name'])
 
     # return a normalized title for the song
-    def get_title(self, music_info):
+    def __get_title(self, music_info):
         title = music_info['title_with_featured'].replace('Ft.', 'feat.')
         return unicodedata.normalize('NFKD', title)
 
     # rename the file appropriately
-    def rename_file(self, title, artist, oldfilepath):
+    def __rename_file(self, title, artist, oldfilepath):
         basepath, oldname = os.path.split(oldfilepath)
         _, ext = os.path.splitext(oldname)
         # remove special chars
@@ -122,7 +122,7 @@ class gTagger:
         os.rename(oldfilepath, newfilepath)
         return newfilepath
 
-    def embed_song_metadata(self, query, filename, genius_url=None):
+    def __embed_metatags(self, query, filename, genius_url):
 
         # search for song metadata
         music_info = self.get_song_metadata(query, genius_url)
@@ -156,3 +156,9 @@ class gTagger:
 
         # return new title and filename
         return f'{artist} - {title}', self.rename_file(title, artist, filename)
+
+    def tag(self, query, filename, genius_url=None):
+        try:
+            self.__embed_metatags(query, filename, genius_url)
+        except Exception as e:
+            self.log(e)
