@@ -10,7 +10,7 @@ A CLI for automatically meta-tagging music files using [Genius' API](https://gen
 - Works in CLI and can be imported into Python
 
 ## Installation
-- Install using `pip install git+https://github.com/Haroon96/gTagger`
+- Install using `pip install --upgrade git+https://github.com/Haroon96/gTagger`
 - [Signup on Genius](https://genius.com/developers) to get an API token
 - Run the program and enter the token when prompted
 
