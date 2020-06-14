@@ -21,7 +21,6 @@ class gTagger:
         # fetch page
         r = requests.get(url, headers={'User-Agent':'haroon96/gTagger'})
         html = r.text
-        open('test.html','w').write(html)
 
         # get song_id
         key = re.search(r'(?i)"song ?id.?":([0-9]+)', html)
@@ -50,27 +49,20 @@ class gTagger:
                 # replace all <br> with new-lines
                 html = re.sub(r'<br/?>', '\n', html)
                 
-                # try to get lyrics and genre
+                # try to get lyrics
                 soup = BeautifulSoup(html, 'html.parser')
 
-                lyrics = None
-                genre = None
-
                 try:
+                    lyrics = None
                     l = re.compile(r'(?i)^lyrics')
                     lyrics = soup.find('div', attrs={'class': l}).text.strip()
                 except:
                     self.log("\tFailed to fetch lyrics!")
 
-                try:
-                    genre = json.loads(soup.find('meta', attrs={"itemprop":"page_data"})['content'])['dmp_data_layer']['page']['genres'][0]
-                except:
-                    self.log("\tFailed to fetch genre")
-
-                return (song_id, lyrics, genre)
+                return (song_id, lyrics)
             except Exception as e:
                 self.log(f'\t{e}')
-                
+
         raise '\tFailed to find the song on Genius.com!'
             
     def get_track_number(self, album_url, song_url):
@@ -84,8 +76,8 @@ class gTagger:
         headers = {'Authorization': f'Bearer {self.token}'}
         
         # search for song on genius.com
-        # lyrics and genre aren't available in genius API
-        song_id, lyrics, genre = self.get_genius_data(q, genius_url)
+        # lyrics aren't available in genius API, scrape them directly
+        song_id, lyrics = self.get_genius_data(q, genius_url)
 
         # fetch song metadata using genius.com API
         r = requests.get(f'https://api.genius.com/songs/{song_id}', headers=headers)
@@ -93,7 +85,6 @@ class gTagger:
         # parse response and return music info
         js = r.json()['response']['song']
         js['lyrics'] = lyrics
-        js['genre'] = genre
 
         if js['album'] is not None:
             js['track_number'] = self.get_track_number(js['album']['url'], js['url'])
@@ -151,7 +142,6 @@ class gTagger:
         audio_file['TPE2'] = TPE2(encoding=3, text=[album_artist])
         
         # embed other tags
-        audio_file['TCON'] = TCON(encoding=3, text=[music_info['genre']])
         audio_file['USLT::XXX'] = USLT(encoding=1, lang='XXX', desc='', text=music_info['lyrics'])
         audio_file['TRCK'] = TRCK(encoding=3, text=[music_info['track_number']])
 
