@@ -12,7 +12,7 @@ from pathvalidate import sanitize_filename
 
 class gTagger:
 
-    def __init__(self, token, log=lambda x : None):
+    def __init__(self, token, log=lambda *x : None):
         self.token = token
         self.log = log
 
