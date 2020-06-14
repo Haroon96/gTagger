@@ -73,7 +73,7 @@ def cli():
         try:
             print(f'\nTagging {title}...')
             title, newfile = gt.tag(query, fp, args.genius_url)
-            print(f"\tRenaming file to {title}...")
+            print(f"\tRenaming file to {os.path.basename(newfile)}...")
             print("\tDone!")
         except Exception as e:
             print(f"Failed to tag! {e}")
