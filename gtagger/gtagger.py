@@ -44,7 +44,7 @@ class gTagger:
             self.log("\tTrying URL", url)
 
             try:
-                song_id, html = self.fetch_page(url)
+                song_id, html = self.__fetch_page(url)
 
                 # replace all <br> with new-lines
                 html = re.sub(r'<br/?>', '\n', html)
@@ -77,7 +77,7 @@ class gTagger:
         
         # search for song on genius.com
         # lyrics aren't available in genius API, scrape them directly
-        song_id, lyrics = self.get_genius_data(q, genius_url)
+        song_id, lyrics = self.__get_genius_data(q, genius_url)
 
         # fetch song metadata using genius.com API
         r = requests.get(f'https://api.genius.com/songs/{song_id}', headers=headers)
@@ -131,13 +131,13 @@ class gTagger:
         audio_file = File(filename)
 
         # embed title and artist info
-        title = self.get_title(music_info)
+        title = self.__get_title(music_info)
         artist = music_info['primary_artist']['name']
         audio_file['TIT2'] = TIT2(encoding=3, text=[title])
         audio_file['TPE1'] = TPE1(encoding=3, text=[artist])
 
         # embed album info
-        album_name, album_artist = self.get_album_info(music_info)
+        album_name, album_artist = self.__get_album_info(music_info)
         audio_file['TALB'] = TALB(encoding=3, text=[album_name])
         audio_file['TPE2'] = TPE2(encoding=3, text=[album_artist])
         
@@ -146,7 +146,7 @@ class gTagger:
         audio_file['TRCK'] = TRCK(encoding=3, text=[music_info['track_number']])
 
         try:
-            artwork = requests.get(self.get_cover_art_url(music_info), stream=True)
+            artwork = requests.get(self.__get_cover_art_url(music_info), stream=True)
             audio_file['APIC:'] = APIC(encoding=3, mime="image/jpeg", type=3, desc='', data=artwork.raw.read())
         except Exception as e:
             self.log(f"\tFailed to embed artwork for title: {title}", e)
@@ -155,7 +155,7 @@ class gTagger:
         audio_file.save()
 
         # return new title and filename
-        return f'{artist} - {title}', self.rename_file(title, artist, filename)
+        return f'{artist} - {title}', self.__rename_file(title, artist, filename)
 
     def tag(self, query, filename, genius_url=None):
         try:
