@@ -29,7 +29,6 @@ optional arguments:
 --genius-url GENIUS_URL
                     Genius.com URL to use for tagging (use if program
                     fails to find it itself)
-
 ```
 
 ### Examples
